@@ -14,7 +14,6 @@ import {z} from 'genkit';
 const GeneratePositiveReviewInputSchema = z.object({
   businessName: z.string().describe('The name of the business to review.'),
   productOrService: z.string().describe('The specific product or service experienced.'),
-  positiveExperience: z.string().describe('Details of the positive experience with the product or service.'),
 });
 export type GeneratePositiveReviewInput = z.infer<typeof GeneratePositiveReviewInputSchema>;
 
@@ -31,13 +30,12 @@ const generateReviewPrompt = ai.definePrompt({
   name: 'generateReviewPrompt',
   input: {schema: GeneratePositiveReviewInputSchema},
   output: {schema: GeneratePositiveReviewOutputSchema},
-  prompt: `You are a helpful assistant that crafts positive business reviews.
+  prompt: `You are a helpful assistant that crafts excellent, positive business reviews.
 
-  Based on the following information, write a positive review for the business.
+  Based on the following information, write a glowing, positive review for the business. Be creative and enthusiastic.
 
   Business Name: {{{businessName}}}
   Product or Service: {{{productOrService}}}
-  Positive Experience: {{{positiveExperience}}}
 
   Review:
   `,

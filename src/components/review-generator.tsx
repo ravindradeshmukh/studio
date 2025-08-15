@@ -17,7 +17,6 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
   Form,
@@ -41,20 +40,14 @@ const businessInfoSchema = z.object({
     .min(2, { message: 'Product/service must be at least 2 characters.' }),
 });
 
-const reviewSchema = z.object({
-  positiveExperience: z
-    .string()
-    .min(20, { message: 'Experience must be at least 20 characters.' }),
-});
-
 type BusinessInfoFormValues = z.infer<typeof businessInfoSchema>;
-type ReviewFormValues = z.infer<typeof reviewSchema>;
 
 const LOCAL_STORAGE_KEY = 'reviewBuddyBusinessInfo';
 
 export function ReviewGenerator() {
   const { toast } = useToast();
   const [generatedReview, setGeneratedReview] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const [businessInfo, setBusinessInfo] =
     useState<BusinessInfoFormValues | null>(null);
   const resultCardRef = useRef<HTMLDivElement>(null);
@@ -79,15 +72,6 @@ export function ReviewGenerator() {
     },
   });
 
-  const reviewForm = useForm<ReviewFormValues>({
-    resolver: zodResolver(reviewSchema),
-    defaultValues: {
-      positiveExperience: '',
-    },
-  });
-
-  const { isSubmitting: isGenerating } = reviewForm.formState;
-
   const handleSaveBusinessInfo: SubmitHandler<BusinessInfoFormValues> = (
     data
   ) => {
@@ -108,7 +92,7 @@ export function ReviewGenerator() {
     setGeneratedReview('');
   };
 
-  const onReviewSubmit: SubmitHandler<ReviewFormValues> = async (data) => {
+  const onGenerateSubmit = async () => {
     if (!businessInfo) {
       toast({
         variant: 'destructive',
@@ -118,15 +102,16 @@ export function ReviewGenerator() {
       return;
     }
 
+    setIsGenerating(true);
+    setGeneratedReview('');
+
     const formData = new FormData();
-    formData.append('positiveExperience', data.positiveExperience);
     formData.append('googleMapsLink', businessInfo.googleMapsLink);
     formData.append('businessName', businessInfo.businessName);
     formData.append('productOrService', businessInfo.productOrService);
 
-    setGeneratedReview('');
-
     const result = await handleGenerateReview(formData);
+    setIsGenerating(false);
 
     if (result.error) {
       toast({
@@ -140,7 +125,6 @@ export function ReviewGenerator() {
         title: 'Success!',
         description: 'Your glowing review is ready.',
       });
-      reviewForm.reset();
     }
   };
 
@@ -236,60 +220,49 @@ export function ReviewGenerator() {
   return (
     <div className="w-full max-w-2xl mx-auto space-y-8">
       <Card className="shadow-lg">
-        <Form {...reviewForm}>
-          <form onSubmit={reviewForm.handleSubmit(onReviewSubmit)}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="font-headline text-3xl">
-                    {businessInfo.businessName}
-                  </CardTitle>
-                  <CardDescription>
-                    Reviewing: {businessInfo.productOrService}
-                  </CardDescription>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleEditBusinessInfo}
-                >
-                  <Edit className="mr-2 h-4 w-4" /> Edit
-                </Button>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            onGenerateSubmit();
+          }}
+        >
+          <CardHeader>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="font-headline text-3xl">
+                  {businessInfo.businessName}
+                </CardTitle>
+                <CardDescription>
+                  Reviewing: {businessInfo.productOrService}
+                </CardDescription>
               </div>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={reviewForm.control}
-                name="positiveExperience"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tell us what you liked</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="e.g., The staff was incredibly friendly and the coffee was the best I've ever had."
-                        rows={4}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" disabled={isGenerating} className="w-full">
-                {isGenerating ? (
-                  <LoaderCircle className="animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    Generate Review
-                  </>
-                )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleEditBusinessInfo}
+              >
+                <Edit className="mr-2 h-4 w-4" /> Edit
               </Button>
-            </CardFooter>
-          </form>
-        </Form>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              Ready to generate a new positive review for this business?
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" disabled={isGenerating} className="w-full">
+              {isGenerating ? (
+                <LoaderCircle className="animate-spin" />
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Review
+                </>
+              )}
+            </Button>
+          </CardFooter>
+        </form>
       </Card>
 
       {generatedReview && (

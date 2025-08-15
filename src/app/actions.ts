@@ -10,9 +10,6 @@ const ReviewSchema = z.object({
   googleMapsLink: z.string().url('Please enter a valid Google Maps link.'),
   businessName: z.string().min(1, 'Business name is required.'),
   productOrService: z.string().min(1, 'Product or service is required.'),
-  positiveExperience: z
-    .string()
-    .min(20, 'Please describe your experience in at least 20 characters.'),
 });
 
 export type ReviewGenerationResult = {
@@ -35,14 +32,13 @@ export async function handleGenerateReview(
     };
   }
 
-  const { businessName, productOrService, positiveExperience } =
+  const { businessName, productOrService } =
     validatedFields.data;
 
   try {
     const aiInput: GeneratePositiveReviewInput = {
       businessName,
       productOrService,
-      positiveExperience,
     };
 
     const result = await generatePositiveReview(aiInput);
