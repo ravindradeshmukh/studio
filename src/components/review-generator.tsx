@@ -69,7 +69,7 @@ export function ReviewGenerator() {
       googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
       businessName: 'Muktai Traders',
       productOrService:
-        'painting services, Rajyog Paints, painting consultation and color visualization',
+        'Asian paints, painting services, Rajyog Paints, painting consultation and color visualization',
     },
   });
 
