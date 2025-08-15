@@ -27,9 +27,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Copy, ExternalLink, Sparkles, LoaderCircle } from 'lucide-react';
+import { Copy, ExternalLink, Sparkles, LoaderCircle, Edit } from 'lucide-react';
 
-const formSchema = z.object({
+const businessInfoSchema = z.object({
   googleMapsLink: z
     .string()
     .url({ message: 'Please enter a valid Google Maps URL.' }),
@@ -39,39 +39,92 @@ const formSchema = z.object({
   productOrService: z
     .string()
     .min(2, { message: 'Product/service must be at least 2 characters.' }),
+});
+
+const reviewSchema = z.object({
   positiveExperience: z
     .string()
     .min(20, { message: 'Experience must be at least 20 characters.' }),
 });
 
-type FormValues = z.infer<typeof formSchema>;
+type BusinessInfoFormValues = z.infer<typeof businessInfoSchema>;
+type ReviewFormValues = z.infer<typeof reviewSchema>;
+
+const LOCAL_STORAGE_KEY = 'reviewBuddyBusinessInfo';
 
 export function ReviewGenerator() {
   const { toast } = useToast();
   const [generatedReview, setGeneratedReview] = useState('');
-  const [googleLink, setGoogleLink] = useState('');
+  const [businessInfo, setBusinessInfo] =
+    useState<BusinessInfoFormValues | null>(null);
   const resultCardRef = useRef<HTMLDivElement>(null);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  useEffect(() => {
+    try {
+      const savedInfo = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedInfo) {
+        setBusinessInfo(JSON.parse(savedInfo));
+      }
+    } catch (error) {
+      console.error('Failed to parse business info from localStorage', error);
+    }
+  }, []);
+
+  const businessForm = useForm<BusinessInfoFormValues>({
+    resolver: zodResolver(businessInfoSchema),
     defaultValues: {
       googleMapsLink: '',
       businessName: '',
       productOrService: '',
+    },
+  });
+
+  const reviewForm = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: {
       positiveExperience: '',
     },
   });
 
-  const { isSubmitting } = form.formState;
+  const { isSubmitting: isGenerating } = reviewForm.formState;
 
-  const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    const formData = new FormData();
-    (Object.keys(data) as Array<keyof FormValues>).forEach((key) => {
-      formData.append(key, data[key]);
+  const handleSaveBusinessInfo: SubmitHandler<BusinessInfoFormValues> = (
+    data
+  ) => {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    setBusinessInfo(data);
+    toast({
+      title: 'Business Info Saved!',
+      description: 'You can now start generating reviews.',
     });
+  };
+
+  const handleEditBusinessInfo = () => {
+    if (businessInfo) {
+      businessForm.reset(businessInfo);
+    }
+    setBusinessInfo(null);
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    setGeneratedReview('');
+  };
+
+  const onReviewSubmit: SubmitHandler<ReviewFormValues> = async (data) => {
+    if (!businessInfo) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Business information is missing.',
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('positiveExperience', data.positiveExperience);
+    formData.append('googleMapsLink', businessInfo.googleMapsLink);
+    formData.append('businessName', businessInfo.businessName);
+    formData.append('productOrService', businessInfo.productOrService);
 
     setGeneratedReview('');
-    setGoogleLink(data.googleMapsLink);
 
     const result = await handleGenerateReview(formData);
 
@@ -87,7 +140,7 @@ export function ReviewGenerator() {
         title: 'Success!',
         description: 'Your glowing review is ready.',
       });
-      form.reset();
+      reviewForm.reset();
     }
   };
 
@@ -108,36 +161,39 @@ export function ReviewGenerator() {
     });
   };
 
-  return (
-    <div className="w-full max-w-2xl mx-auto space-y-8">
-      <Card className="shadow-lg">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+  if (!businessInfo) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto shadow-lg">
+        <Form {...businessForm}>
+          <form onSubmit={businessForm.handleSubmit(handleSaveBusinessInfo)}>
             <CardHeader>
               <CardTitle className="font-headline text-3xl">
-                Generate a Glowing Review
+                Business Details
               </CardTitle>
               <CardDescription>
-                Fill in the details below and our AI will craft a positive
-                review for you.
+                First, let's save the business information. We'll remember it
+                for next time.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <FormField
-                control={form.control}
+                control={businessForm.control}
                 name="googleMapsLink"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Google Maps Review Link</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://maps.app.goo.gl/..." {...field} />
+                      <Input
+                        placeholder="https://maps.app.goo.gl/..."
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <FormField
-                control={form.control}
+                control={businessForm.control}
                 name="businessName"
                 render={({ field }) => (
                   <FormItem>
@@ -150,14 +206,14 @@ export function ReviewGenerator() {
                 )}
               />
               <FormField
-                control={form.control}
+                control={businessForm.control}
                 name="productOrService"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Product or Service</FormLabel>
+                    <FormLabel>Main Product or Service</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g., Iced Latte, Website Design"
+                        placeholder="e.g., Coffee, Web Design"
                         {...field}
                       />
                     </FormControl>
@@ -165,8 +221,45 @@ export function ReviewGenerator() {
                   </FormItem>
                 )}
               />
+            </CardContent>
+            <CardFooter>
+              <Button type="submit" className="w-full">
+                Save Business Info
+              </Button>
+            </CardFooter>
+          </form>
+        </Form>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-2xl mx-auto space-y-8">
+      <Card className="shadow-lg">
+        <Form {...reviewForm}>
+          <form onSubmit={reviewForm.handleSubmit(onReviewSubmit)}>
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="font-headline text-3xl">
+                    {businessInfo.businessName}
+                  </CardTitle>
+                  <CardDescription>
+                    Reviewing: {businessInfo.productOrService}
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleEditBusinessInfo}
+                >
+                  <Edit className="mr-2 h-4 w-4" /> Edit
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
               <FormField
-                control={form.control}
+                control={reviewForm.control}
                 name="positiveExperience"
                 render={({ field }) => (
                   <FormItem>
@@ -184,8 +277,8 @@ export function ReviewGenerator() {
               />
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? (
+              <Button type="submit" disabled={isGenerating} className="w-full">
+                {isGenerating ? (
                   <LoaderCircle className="animate-spin" />
                 ) : (
                   <>
@@ -226,7 +319,11 @@ export function ReviewGenerator() {
                 Copy Review
               </Button>
               <Button asChild className="w-full sm:w-auto">
-                <a href={googleLink} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={businessInfo.googleMapsLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Leave Your Review
                 </a>
