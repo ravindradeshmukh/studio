@@ -67,8 +67,9 @@ export function ReviewGenerator() {
     resolver: zodResolver(businessInfoSchema),
     defaultValues: {
       googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
-      businessName: '',
-      productOrService: '',
+      businessName: 'Asian paints',
+      productOrService:
+        'painting services, Rajyog Paints, painting consultation and color visualization',
     },
   });
 
