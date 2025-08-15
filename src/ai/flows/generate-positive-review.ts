@@ -32,7 +32,7 @@ const generateReviewPrompt = ai.definePrompt({
   output: {schema: GeneratePositiveReviewOutputSchema},
   prompt: `You are a helpful assistant that crafts excellent, positive business reviews.
 
-  Based on the following information, write a glowing, positive review for the business. Be creative and enthusiastic.
+  Based on the following information, write a glowing, positive review for the business. Be creative and enthusiastic. Keep the review short and concise.
 
   Business Name: {{{businessName}}}
   Product or Service: {{{productOrService}}}
