@@ -66,7 +66,7 @@ export function ReviewGenerator() {
   const businessForm = useForm<BusinessInfoFormValues>({
     resolver: zodResolver(businessInfoSchema),
     defaultValues: {
-      googleMapsLink: '',
+      googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
       businessName: '',
       productOrService: '',
     },
