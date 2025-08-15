@@ -20,6 +20,13 @@ export type ReviewGenerationResult = {
 export async function handleGenerateReview(
   formData: FormData
 ): Promise<ReviewGenerationResult> {
+  if (!process.env.GEMINI_API_KEY) {
+    return {
+      error:
+        'The GEMINI_API_KEY is not set. Please add it to your .env file.',
+    };
+  }
+
   const data = Object.fromEntries(formData.entries());
   const validatedFields = ReviewSchema.safeParse(data);
 
