@@ -44,6 +44,13 @@ type BusinessInfoFormValues = z.infer<typeof businessInfoSchema>;
 
 const LOCAL_STORAGE_KEY = 'reviewBuddyBusinessInfo';
 
+const defaultBusinessInfo: BusinessInfoFormValues = {
+  googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
+  businessName: 'Muktai Traders',
+  productOrService:
+    'Asian paints, painting services, Rajyog Paints, painting consultation and color visualization',
+};
+
 export function ReviewGenerator() {
   const { toast } = useToast();
   const [generatedReview, setGeneratedReview] = useState('');
@@ -57,20 +64,18 @@ export function ReviewGenerator() {
       const savedInfo = localStorage.getItem(LOCAL_STORAGE_KEY);
       if (savedInfo) {
         setBusinessInfo(JSON.parse(savedInfo));
+      } else {
+        setBusinessInfo(defaultBusinessInfo);
       }
     } catch (error) {
       console.error('Failed to parse business info from localStorage', error);
+      setBusinessInfo(defaultBusinessInfo);
     }
   }, []);
 
   const businessForm = useForm<BusinessInfoFormValues>({
     resolver: zodResolver(businessInfoSchema),
-    defaultValues: {
-      googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
-      businessName: 'Muktai Traders',
-      productOrService:
-        'Asian paints, painting services, Rajyog Paints, painting consultation and color visualization',
-    },
+    defaultValues: defaultBusinessInfo,
   });
 
   const handleSaveBusinessInfo: SubmitHandler<BusinessInfoFormValues> = (
