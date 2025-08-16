@@ -30,15 +30,18 @@ const generateReviewPrompt = ai.definePrompt({
   name: 'generateReviewPrompt',
   input: {schema: GeneratePositiveReviewInputSchema},
   output: {schema: GeneratePositiveReviewOutputSchema},
-  prompt: `You are a helpful assistant that crafts excellent, positive business reviews.
+  prompt: `You are a helpful assistant that crafts excellent, positive business reviews. Your goal is to generate a unique review each time. Do not repeat phrases or sentences from previous reviews.
 
-  Based on the following information, write a glowing, positive review for the business. Be creative and enthusiastic. Keep the review short and concise.
+  Based on the following information, write a glowing, positive review for the business. Be creative, enthusiastic, and original. Keep the review short and concise.
 
   Business Name: {{{businessName}}}
   Product or Service: {{{productOrService}}}
 
   Review:
   `,
+  config: {
+    temperature: 0.9,
+  },
 });
 
 const generatePositiveReviewFlow = ai.defineFlow(
