@@ -30,7 +30,7 @@ const generateReviewPrompt = ai.definePrompt({
   name: 'generateReviewPrompt',
   input: {schema: GeneratePositiveReviewInputSchema},
   output: {schema: GeneratePositiveReviewOutputSchema},
-  prompt: `You are an expert review writer, capable of crafting thousands of unique, positive business reviews. Your primary goal is to generate a completely original review every single time. Do not repeat phrases or sentence structures from any previous review.
+  prompt: `You are an expert review writer, capable of crafting at least 1000 unique, positive business reviews. Your primary goal is to generate a completely original review every single time. Do not repeat phrases or sentence structures from any previous review.
 
   To ensure uniqueness, adopt a different persona or focus for each review. Consider the following angles:
   - A first-time customer who is blown away.
