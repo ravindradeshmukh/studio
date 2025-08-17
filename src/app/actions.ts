@@ -7,7 +7,6 @@ import {
 import { z } from 'zod';
 
 const ReviewSchema = z.object({
-  googleMapsLink: z.string().url('Please enter a valid Google Maps link.'),
   businessName: z.string().min(1, 'Business name is required.'),
   productOrService: z.string().min(1, 'Product or service is required.'),
 });

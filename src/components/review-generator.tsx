@@ -29,9 +29,6 @@ import {
 import { Copy, ExternalLink, Sparkles, LoaderCircle, Edit } from 'lucide-react';
 
 const businessInfoSchema = z.object({
-  googleMapsLink: z
-    .string()
-    .url({ message: 'Please enter a valid Google Maps URL.' }),
   businessName: z
     .string()
     .min(2, { message: 'Business name must be at least 2 characters.' }),
@@ -45,11 +42,12 @@ type BusinessInfoFormValues = z.infer<typeof businessInfoSchema>;
 const LOCAL_STORAGE_KEY = 'reviewBuddyBusinessInfo';
 
 const defaultBusinessInfo: BusinessInfoFormValues = {
-  googleMapsLink: 'https://g.page/r/CXDBDtKbaLGgEBE/review',
   businessName: 'Muktai Traders',
   productOrService:
     'Asian paints, painting services, Rajyog Paints, painting consultation and color visualization',
 };
+
+const GOOGLE_MAPS_LINK = 'https://g.page/r/CXDBDtKbaLGgEBE/review';
 
 export function ReviewGenerator() {
   const { toast } = useToast();
@@ -112,7 +110,6 @@ export function ReviewGenerator() {
     setGeneratedReview('');
 
     const formData = new FormData();
-    formData.append('googleMapsLink', businessInfo.googleMapsLink);
     formData.append('businessName', businessInfo.businessName);
     formData.append('productOrService', businessInfo.productOrService);
 
@@ -166,22 +163,6 @@ export function ReviewGenerator() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <FormField
-                control={businessForm.control}
-                name="googleMapsLink"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Google Maps Review Link</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="https://maps.app.goo.gl/..."
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={businessForm.control}
                 name="businessName"
@@ -299,7 +280,7 @@ export function ReviewGenerator() {
               </Button>
               <Button asChild className="w-full sm:w-auto">
                 <a
-                  href={businessInfo.googleMapsLink}
+                  href={GOOGLE_MAPS_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
